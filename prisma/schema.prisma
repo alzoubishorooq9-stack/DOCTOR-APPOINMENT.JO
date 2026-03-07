@@ -33,6 +33,7 @@ model Profile {
   full_name  String
   email      String     @unique
   role       UserRole   @default(patient)
+  avatar_url String?
   created_at DateTime   @default(now()) @db.Timestamptz(6)
   
   doctor_details DoctorDetails?
@@ -51,6 +52,7 @@ model DoctorDetails {
   fee          Decimal  @db.Decimal(10, 2)
   rating       Decimal? @default(0) @db.Decimal(3, 2)
   review_count Int?     @default(0)
+  experience_years Int     @default(0)
 
   profile      Profile  @relation(fields: [id], references: [id], onDelete: Cascade)
   services     Service[]

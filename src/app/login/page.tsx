@@ -19,11 +19,21 @@ export default function LoginPage() {
         e.preventDefault()
         setError('')
         setLoading(true)
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) {
             setError(error.message)
-        } else {
-            router.push('/dashboard/patient')
+        } else if (authData.user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', authData.user.id)
+                .single()
+
+            if (profile?.role?.toUpperCase() === 'DOCTOR') {
+                router.push('/dashboard/doctor')
+            } else {
+                router.push('/dashboard/patient')
+            }
         }
         setLoading(false)
     }

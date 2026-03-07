@@ -87,5 +87,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // 6. Mark availability slot as booked
+    await admin
+        .from('availability')
+        .update({ is_booked: true })
+        .eq('doctor_id', doctor_id)
+        .eq('date', appointment_date)
+        .eq('start_time', appointment_time)
+
     return NextResponse.json(data)
 }

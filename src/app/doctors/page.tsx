@@ -114,7 +114,7 @@ export default function DoctorDiscovery() {
                                                 fee={doc.consultation_fee || 100}
                                                 rating={doc.rating || 4.8}
                                                 reviewsCount={doc.reviews_count || 50}
-                                                imageUrl={doc.image_url}
+                                                imageUrl={doc.profiles?.avatar_url || doc.image_url}
                                             />
                                         ))}
                                     </div>

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const supabase = await createAdminClient()
     const { id } = await params
@@ -14,16 +14,52 @@ export async function GET(
         return NextResponse.json({ error: 'Date is required' }, { status: 400 })
     }
 
-    // 1. Get Doctor's Availability Rules
-    const dayOfWeek = new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
-    const { data: rules } = await supabase
+    // 1. Get Doctor's Availability rules/slots for this date
+    let { data: slots } = await supabase
         .from('availability')
         .select('*')
         .eq('doctor_id', id)
-        .eq('day_of_week', dayOfWeek)
-        .eq('is_active', true)
+        .eq('date', dateStr)
 
-    if (!rules || rules.length === 0) {
+    // Fallback to Day of Week rules if no specific slots for this date
+    if (!slots || slots.length === 0) {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        const dayName = days[new Date(dateStr).getUTCDay()]
+
+        const { data: rules } = await supabase
+            .from('availability')
+            .select('*')
+            .eq('doctor_id', id)
+            .eq('day_of_week', dayName)
+            .eq('is_active', true)
+
+        if (rules && rules.length > 0) {
+            // Generate slots from rules (usually one rule per day)
+            const generatedSlots: any[] = []
+            rules.forEach(rule => {
+                let current = rule.start_time
+                const end = rule.end_time || '17:00:00'
+                const duration = rule.slot_duration_mins || 30
+
+                while (current < end) {
+                    generatedSlots.push({
+                        start_time: current,
+                        is_booked: false
+                    })
+
+                    // Add duration
+                    const [h, m] = current.split(':').map(Number)
+                    const totalMins = h * 60 + m + duration
+                    const nextH = Math.floor(totalMins / 60)
+                    const nextM = totalMins % 60
+                    current = `${String(nextH).padStart(2, '0')}:${String(nextM).padStart(2, '0')}:00`
+                }
+            })
+            slots = generatedSlots
+        }
+    }
+
+    if (!slots || slots.length === 0) {
         return NextResponse.json([]) // No availability for this day
     }
 
@@ -37,28 +73,18 @@ export async function GET(
 
     const bookedTimes = bookings?.map(b => b.appointment_time.slice(0, 5)) || []
 
-    // 3. Generate Slots
+    // 3. Filter available slots
     const availableSlots: string[] = []
 
-    rules.forEach(rule => {
-        let current = rule.start_time
-        const end = rule.end_time
-        const duration = rule.slot_duration_mins || 30
-
-        while (current < end) {
-            const timeStr = current.slice(0, 5) // HH:MM
-            if (!bookedTimes.includes(timeStr)) {
-                availableSlots.push(timeStr)
-            }
-
-            // Increment by duration (very basic string parsing for brevity in POC)
-            const [h, m] = current.split(':').map(Number)
-            const totalMins = h * 60 + m + duration
-            const nextH = Math.floor(totalMins / 60)
-            const nextM = totalMins % 60
-            current = `${String(nextH).padStart(2, '0')}:${String(nextM).padStart(2, '0')}:00`
+    slots.forEach(slot => {
+        const timeStr = slot.start_time.slice(0, 5) // HH:MM
+        if (!bookedTimes.includes(timeStr) && !slot.is_booked) {
+            availableSlots.push(timeStr)
         }
     })
+
+    // Sort the available slots
+    availableSlots.sort((a, b) => a.localeCompare(b))
 
     return NextResponse.json(availableSlots)
 }

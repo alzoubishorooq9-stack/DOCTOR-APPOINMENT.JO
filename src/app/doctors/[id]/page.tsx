@@ -32,7 +32,7 @@ export default function DoctorProfile() {
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                         <h3 className="text-xl font-bold text-gray-900 mb-4">About Me</h3>
                         <p className="text-gray-500 leading-relaxed text-sm mb-8">
-                            {doctor.bio || `Dr. ${doctor.profiles?.full_name} is a board-certified specialist dedicated to providing exceptional care.`}
+                            {doctor.about || doctor.bio || `Dr. ${doctor.profiles?.full_name || 'Provider'} is a board-certified specialist dedicated to providing exceptional care.`}
                         </p>
                     </motion.div>
                 )
@@ -135,7 +135,7 @@ export default function DoctorProfile() {
                             <div className="px-8 -mt-20 flex flex-col md:flex-row items-end gap-6">
                                 <div className="w-40 h-40 rounded-full border-8 border-white shadow-xl overflow-hidden bg-gray-100 flex-none relative">
                                     <img
-                                        src={doctor.image_url || "https://images.unsplash.com/photo-1559839734-2b71f153678f?auto=format&fit=crop&q=80&w=300"}
+                                        src={doctor.profiles?.avatar_url || doctor.image_url || "https://images.unsplash.com/photo-1559839734-2b71f153678f?auto=format&fit=crop&q=80&w=300"}
                                         alt={doctor.profiles?.full_name}
                                         className="w-full h-full object-cover"
                                     />
@@ -155,7 +155,10 @@ export default function DoctorProfile() {
                                     </div>
                                     <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-emerald-success">
                                         <span className="flex items-center gap-1">✅ Verified Provider</span>
-                                        <span className="flex items-center gap-1">💬 English, Spanish</span>
+                                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                        <span className="text-medical-blue">{doctor.experience_years || doctor.experienceYears || '5+'} Years Experience</span>
+                                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                        <span className="flex items-center gap-1 text-gray-400">💬 English, Arabic</span>
                                     </div>
                                 </div>
                             </div>

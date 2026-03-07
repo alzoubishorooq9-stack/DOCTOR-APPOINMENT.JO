@@ -104,8 +104,8 @@ export default function BookingEngine({ doctorId, fee }: { doctorId: string, fee
                 >
                     ✓
                 </motion.div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Booking Confirmed!</h3>
-                <p className="text-sm text-gray-500">Redirecting you to your schedule...</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Request Sent!</h3>
+                <p className="text-sm text-gray-500">Waiting for doctor's approval. Redirecting...</p>
             </div>
         )
     }
@@ -204,16 +204,16 @@ export default function BookingEngine({ doctorId, fee }: { doctorId: string, fee
                     </div>
                 )}
                 <button
-                    className={`w-full py-4 text-sm font-black rounded-2xl transition-all flex items-center justify-center gap-2 ${(!selectedSlot || !selectedService || isBooking)
+                    className={`w-full py-4 text-sm font-black rounded-2xl transition-all flex items-center justify-center gap-2 ${(!selectedSlot || isBooking)
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : 'bg-medical-blue text-white shadow-xl shadow-medical-blue/20 hover:scale-[1.02] active:scale-[0.98]'
                         }`}
-                    disabled={!selectedSlot || !selectedService || isBooking}
+                    disabled={!selectedSlot || isBooking}
                     onClick={handleBooking}
                 >
                     {isBooking ? (
                         <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                    ) : 'Confirm & Book Session'}
+                    ) : 'Request Appointment'}
                 </button>
                 <p className="text-[10px] text-gray-400 text-center mt-3 font-medium italic">Powered by HealthBook Premium Secure</p>
                 <p className="text-[10px] text-gray-400 text-center mt-1">🛡️ Your booking is secure and instant.</p>
