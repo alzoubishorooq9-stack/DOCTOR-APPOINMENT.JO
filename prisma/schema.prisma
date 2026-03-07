@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+enum UserRole {
+  patient
+  doctor
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+}
+
+enum ServiceStatus {
+  active
+  inactive
+}
+
+model Profile {
+  id         String     @id @db.Uuid
+  full_name  String
+  email      String     @unique
+  role       UserRole   @default(patient)
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  
+  doctor_details DoctorDetails?
+  bookings       Booking[]
+  reviews        Review[]
+
+  @@map("profiles")
+}
+
+model DoctorDetails {
+  id           String   @id @db.Uuid
+  specialty    String
+  bio          String?
+  image_url    String?
+  location     String
+  fee          Decimal  @db.Decimal(10, 2)
+  rating       Decimal? @default(0) @db.Decimal(3, 2)
+  review_count Int?     @default(0)
+
+  profile      Profile  @relation(fields: [id], references: [id], onDelete: Cascade)
+  services     Service[]
+  bookings     Booking[]
+  reviews      Review[]
+  availability Availability[]
+
+  @@map("doctors_details")
+}
+
+model Service {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  doctor_id          String?       @db.Uuid
+  name               String
+  price              Decimal       @db.Decimal(10, 2)
+  duration_mins      Int
+  status             ServiceStatus @default(active)
+  
+  doctor             DoctorDetails? @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
+  bookings           Booking[]
+
+  @@map("services")
+}
+
+model Booking {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  patient_id       String?       @db.Uuid
+  doctor_id        String?       @db.Uuid
+  service_id       String?       @db.Uuid
+  appointment_date DateTime      @db.Date
+  appointment_time DateTime      @db.Time
+  reason           String?
+  notes            String?
+  status           BookingStatus @default(pending)
+  total_price      Decimal       @db.Decimal(10, 2)
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+
+  patient          Profile?       @relation(fields: [patient_id], references: [id], onDelete: SetNull)
+  doctor           DoctorDetails? @relation(fields: [doctor_id], references: [id], onDelete: SetNull)
+  service          Service?       @relation(fields: [service_id], references: [id], onDelete: SetNull)
+  reviews          Review[]
+
+  @@map("bookings")
+}
+
+model Review {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  booking_id String?  @db.Uuid
+  patient_id String?  @db.Uuid
+  doctor_id  String?  @db.Uuid
+  rating     Int?
+  title      String?
+  content    String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  booking    Booking?       @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  patient    Profile?       @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  doctor     DoctorDetails? @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model Availability {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  doctor_id          String?       @db.Uuid
+  day_of_week        String
+  start_time         DateTime      @db.Time
+  end_time           DateTime      @db.Time
+  slot_duration_mins Int?          @default(30)
+  is_active          Boolean?      @default(true)
+
+  doctor             DoctorDetails? @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
+
+  @@map("availability")
+}
