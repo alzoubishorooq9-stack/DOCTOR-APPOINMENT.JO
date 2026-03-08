@@ -16,7 +16,7 @@ export async function GET(request: Request) {
         .from('bookings')
         .select(`
             *,
-            patient:profiles!patient_id(full_name, avatar_url, phone_number),
+            patient:profiles!patient_id(full_name, avatar_url),
             services(name, price, duration_mins)
         `)
         .eq('doctor_id', user.id)
