@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import Chatbot from '@/patient-frontend/components/Chatbot'
 import {
     Activity,
     Flame,
@@ -217,6 +218,7 @@ export default function PatientDashboard() {
                     </div>
                 </div>
             </main>
+            <Chatbot />
         </div>
     )
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import FilterPanel from '@/patient-frontend/components/FilterPanel'
 import DoctorCard from '@/patient-frontend/components/DoctorCard'
+import Chatbot from '@/patient-frontend/components/Chatbot'
 import Link from 'next/link'
 
 export default function DoctorDiscovery() {
@@ -124,6 +125,7 @@ export default function DoctorDiscovery() {
                     </div>
                 </div>
             </main>
+            <Chatbot />
         </div>
     )
 }
